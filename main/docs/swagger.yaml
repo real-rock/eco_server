@@ -1,0 +1,624 @@
+basePath: /v1
+definitions:
+  handler.httpError:
+    properties:
+      message:
+        example: Some error message
+        type: string
+    type: object
+  jwt.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  model.Quant:
+    properties:
+      description:
+        example: quant model description
+        type: string
+      name:
+        example: quant model name
+        type: string
+      user_id:
+        type: integer
+    type: object
+  quant.DoublePair:
+    properties:
+      max:
+        example: -100.01
+        type: number
+      min:
+        example: 100.01
+        type: number
+    type: object
+  quant.IntPair:
+    properties:
+      max:
+        example: -10000
+        type: integer
+      min:
+        example: 1000000
+        type: integer
+    type: object
+  request.QuantC:
+    properties:
+      de_ratio:
+        $ref: '#/definitions/quant.DoublePair'
+      dividend_payout_ratio:
+        $ref: '#/definitions/quant.DoublePair'
+      dividend_yield:
+        $ref: '#/definitions/quant.DoublePair'
+      end_date:
+        example: 2021-03-31T00:00:000.Z
+        type: string
+      financing:
+        $ref: '#/definitions/quant.DoublePair'
+      investing:
+        $ref: '#/definitions/quant.DoublePair'
+      main_sectors:
+        example:
+        - IT
+        - 소재
+        items:
+          type: string
+        type: array
+      market_cap:
+        $ref: '#/definitions/quant.IntPair'
+      name:
+        example: Model name
+        type: string
+      net_profit:
+        $ref: '#/definitions/quant.IntPair'
+      net_profit_rate:
+        $ref: '#/definitions/quant.DoublePair'
+      net_revenue:
+        $ref: '#/definitions/quant.IntPair'
+      net_revenue_rate:
+        $ref: '#/definitions/quant.DoublePair'
+      operating:
+        $ref: '#/definitions/quant.DoublePair'
+      pbr:
+        $ref: '#/definitions/quant.DoublePair'
+      pcr:
+        $ref: '#/definitions/quant.DoublePair'
+      per:
+        $ref: '#/definitions/quant.DoublePair'
+      psr:
+        $ref: '#/definitions/quant.DoublePair'
+      roa:
+        $ref: '#/definitions/quant.DoublePair'
+      roe:
+        $ref: '#/definitions/quant.DoublePair'
+      start_date:
+        example: 2016-03-31T00:00:000.Z
+        type: string
+    type: object
+  request.QuantOptU:
+    properties:
+      de_ratio:
+        $ref: '#/definitions/quant.DoublePair'
+      dividend_payout_ratio:
+        $ref: '#/definitions/quant.DoublePair'
+      dividend_yield:
+        $ref: '#/definitions/quant.DoublePair'
+      end_date:
+        example: 2021-03-31T00:00:000.Z
+        type: string
+      financing:
+        $ref: '#/definitions/quant.DoublePair'
+      investing:
+        $ref: '#/definitions/quant.DoublePair'
+      main_sectors:
+        example:
+        - IT
+        - 소재
+        items:
+          type: string
+        type: array
+      market_cap:
+        $ref: '#/definitions/quant.IntPair'
+      net_profit:
+        $ref: '#/definitions/quant.IntPair'
+      net_profit_rate:
+        $ref: '#/definitions/quant.DoublePair'
+      net_revenue:
+        $ref: '#/definitions/quant.IntPair'
+      net_revenue_rate:
+        $ref: '#/definitions/quant.DoublePair'
+      operating:
+        $ref: '#/definitions/quant.DoublePair'
+      pbr:
+        $ref: '#/definitions/quant.DoublePair'
+      pcr:
+        $ref: '#/definitions/quant.DoublePair'
+      per:
+        $ref: '#/definitions/quant.DoublePair'
+      psr:
+        $ref: '#/definitions/quant.DoublePair'
+      roa:
+        $ref: '#/definitions/quant.DoublePair'
+      roe:
+        $ref: '#/definitions/quant.DoublePair'
+      start_date:
+        example: 2016-03-31T00:00:000.Z
+        type: string
+    type: object
+  request.RegisterRequest:
+    properties:
+      birth:
+        example: 2016-03-31T00:00:000.Z
+        type: string
+      email:
+        example: example@economicus.kr
+        type: string
+      name:
+        example: user name
+        type: string
+      nickname:
+        example: user nickname
+        type: string
+      password:
+        example: some password
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Economicus 메인 서버
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://www.economicus.kr/
+  title: Economicus Main Server
+  version: 1.0.0
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 이메일, 비밀번호로 로그인하기
+      parameters:
+      - description: User login email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: User login password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/jwt.Token'
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Local login
+      tags:
+      - auth
+  /quants:
+    get:
+      consumes:
+      - application/json
+      description: 메인 화면에서 사용될 퀀트 모델들 반환, 개선 필요
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: 10
+        description: number of page
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: number of elements
+        in: query
+        name: per_page
+        type: integer
+      - default: '""'
+        description: fields for order
+        in: query
+        name: order
+        type: string
+      - default: '""'
+        description: keyword for query
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of quants
+          schema:
+            items:
+              $ref: '#/definitions/model.Quant'
+            type: array
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Return a list of quant models
+      tags:
+      - quant
+  /quants/quant:
+    post:
+      consumes:
+      - application/json
+      description: 실험실에서 모델 만들기를 눌렀을 때, 모델 생성
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Quant option data
+        in: body
+        name: quant
+        required: true
+        schema:
+          $ref: '#/definitions/request.QuantC'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ""
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Create a quant model
+      tags:
+      - quant
+  /quants/quant-option/{quant_id}:
+    patch:
+      consumes:
+      - application/json
+      description: 퀀트 옵션을 변경하고자 할 경우 사용
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Quant option data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.QuantOptU'
+      - description: QuantID to update
+        in: path
+        name: quant_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "403":
+          description: Forbidden error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Update a quant option
+      tags:
+      - quant
+  /quants/quant/{quant_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 퀀트 모델을 제거할 경우 사용
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Quant ID to delete
+        in: path
+        name: quant_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "403":
+          description: Forbidden error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Delete a quant model
+      tags:
+      - quant
+    get:
+      consumes:
+      - application/json
+      description: 모델 상세페이지에서 사용될 퀀트 모델 반환, 개선 필요
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: ID of a quant
+        in: path
+        name: quant_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: A quant
+          schema:
+            $ref: '#/definitions/model.Quant'
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Return a quant model
+      tags:
+      - quant
+    patch:
+      consumes:
+      - application/json
+      description: 모델 저장버튼(activate)을 누르거나, 모델 설명을 변경하고자 할 경우 사용
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Quant data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.QuantC'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "403":
+          description: Forbidden error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Update a quant model
+      tags:
+      - quant
+  /refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Access token 기간 만료시, Refresh token을 사용하여 jwt 토큰 재발급
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh_token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: refreshed access token
+          schema:
+            type: string
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Refresh jwt token
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: 이메일, 비밀번호로 유저 회원가입
+      parameters:
+      - description: A user information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ""
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Register a user
+      tags:
+      - user
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: 이메일, 비밀번호로 유저 회원가입
+      parameters:
+      - description: Bearer {access_token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: A user information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ""
+        "400":
+          description: Bad request error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "401":
+          description: Unauthorized error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "404":
+          description: Not found error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.httpError'
+      summary: Return all users
+      tags:
+      - user
+schemes:
+- https
+- http
+securityDefinitions:
+  JWT:
+    type: basic
+swagger: "2.0"

@@ -1,0 +1,4 @@
+[submodule "economicus-fe"]
+	path = economicus-fe
+	url = https://github.com/economicus/economicus-fe
+	branch = feat/QuantLabPage

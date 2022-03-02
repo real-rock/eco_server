@@ -1,0 +1,6 @@
+[2022-03-01 12:32:36] - ERROR - error in CreateQuantResult
+[2022-03-01 12:34:14] - ERROR - error in CreateQuantResult: (Unauthorized) not authorized on economicus to execute command { insert: "quant_results", ordered: true, lsid: { id: UUID("84deaf7c-e360-41d3-b91b-3ccef2ff246a") }, $db: "economicus" }
+[2022-03-01 12:40:42] - ERROR - error in CreateQuantResult: (Unauthorized) not authorized on economicus to execute command { insert: "quant_results", ordered: true, lsid: { id: UUID("8d9da80b-f2d2-4499-9ffa-74d5b8b102ab") }, $db: "economicus" }
+[2022-03-01 13:54:24] - ERROR - error in CreateQuantResult: connection() error occured during connection handshake: auth error: sasl conversation error: unable to authenticate using mechanism "SCRAM-SHA-1": (AuthenticationFailed) Authentication failed.
+[2022-03-01 14:03:18] - ERROR - error in UpdateQuant: sql: converting argument $1 type: unsupported type primitive.ObjectID, a array
+

@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+  main:
+    build:
+      context: ./main
+      dockerfile: Dockerfile
+    container_name: main
+    restart: always
+    env_file: .env
+    links:
+      - "db:mysqldb"
+    depends_on:
+      - quant
+      - db
+    ports:
+      - "8080:8080"
+    command: sh -c scripts/run.sh
+
+  quant:
+    build:
+      context: ./quant
+      dockerfile: Dockerfile
+    container_name: quant
+    restart: always
+    ports:
+      - "9000:9000"
+    command: python3 main.py
+
+  mysql:
+    platform: linux/x86_64
+    image: mysql:5.7
+    container_name: mysql
+    user: "501:20"
+    restart: always
+    env_file: .env.mysql
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --init-connect='SET NAMES UTF8;' --innodb-flush-log-at-trx-commit=0
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    env_file: .env.mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./volumes/mongo:/data/db

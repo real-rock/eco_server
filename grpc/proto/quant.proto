@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+package proto;
+option go_package="./proto";
+
+// 데이터를 계산하기 위한 gRPC 서비스
+// Client: Golang
+// Server: Python
+service Quant {
+  rpc Request(QuantRequest) returns (QuantResult) {}
+}
+
+message ChartData {
+  google.protobuf.Timestamp start_date = 1 [json_name="start_date"];
+  repeated float profit_rate_data = 2 [json_name="profit_rate_data"];
+}
+
+// 실험실에서 입력한 옵션값에 대한 데이터 결과
+message QuantResult {
+  double cumulative_return = 1 [json_name="cumulative_return"];
+  double annual_average_return = 2 [json_name="annual_average_return"];
+  double winning_percentage = 3 [json_name="winning_percentage"];
+  double max_loss_rate = 4 [json_name="max_loss_rate"];
+  int32 holdings_count = 5 [json_name="holdings_count"];
+  ChartData chart_data = 6 [json_name="chart_data"];
+}
+
+// 실험실에서 유저가 입력할 수 있는 퀀트 모델의 옵션
+message QuantRequest {
+  // 사업 분야
+  repeated string main_sector = 1 [json_name="main_sector"];
+  // 매출액
+  IntPair net_revenue = 2 [json_name="net_revenue"];
+  // 매출액 증가율
+  DoublePair net_revenue_rate = 3 [json_name="net_revenue_rate"];
+  // 당기 순이익
+  IntPair net_profit = 4 [json_name="net_profit"];
+  // 당기 순이익 증가율
+  DoublePair net_profit_rate = 5 [json_name="net_profit_rate"];
+  // 부채율
+  DoublePair de_ratio = 6 [json_name="de_ratio"];
+  // PER
+  DoublePair per = 7 [json_name="per"];
+  // PSR
+  DoublePair psr = 8 [json_name="psr"];
+  // PBR
+  DoublePair pbr = 9 [json_name="pbr"];
+  // PCR
+  DoublePair pcr = 10 [json_name="pcr"];
+  // 현금 흐름
+  Activities activities = 11 [json_name="activities"];
+  // 현금 배당 수익률
+  DoublePair dividend_yield = 12 [json_name="dividend_yield"];
+  // 현금 배당 성향
+  DoublePair dividend_payout_ratio = 13 [json_name="dividend_payout_ratio"];
+  // ROA
+  DoublePair roa = 14 [json_name="roa"];
+  // ROE
+  DoublePair roe = 15 [json_name="roe"];
+  // 시가 총액
+  IntPair market_cap = 16 [json_name="market_cap"];
+  // 검색 시작 날짜
+  google.protobuf.Timestamp start_date = 17 [json_name="start_date"];
+  // 검색 끝 날짜
+  google.protobuf.Timestamp end_date = 18 [json_name="end_date"];
+}
+
+message Activities {
+  // 영업 현금 흐름
+  DoublePair operating = 1 [json_name="operating"];
+  // 투자 현금 흐름
+  DoublePair investing = 2 [json_name="investing"];
+  // 재무 현금 흐름
+  DoublePair financing = 3 [json_name="financing"];
+}
+
+message IntPair {
+  // 최솟값
+  int64 min = 1 [json_name="min"];
+  // 최댓값
+  int64 max = 2 [json_name="max"];
+}
+
+message DoublePair {
+  // 최솟값
+  float min = 1 [json_name="min"];
+  // 최댓값
+  float max = 2 [json_name="max"];
+}

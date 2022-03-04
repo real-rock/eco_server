@@ -41,11 +41,11 @@ func (s *UserService) Register(req *request.RegisterRequest) error {
 	if err := s.repo.CheckNickname(req.Nickname); err != nil {
 		return err
 	}
-	userID, err := s.repo.CreateUser(req.Email, req.Password, req.Name)
+	userID, err := s.repo.CreateUser(req.Email, req.Password)
 	if err != nil {
 		return err
 	}
-	return s.repo.CreateProfile(userID, req.Nickname, req.Birth)
+	return s.repo.CreateProfile(userID, req.Nickname)
 }
 
 func (s *UserService) UpdateProfile(userID uint, req *model.Profile) error {

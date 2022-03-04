@@ -36,7 +36,7 @@ func (md *DB) GetMongoDB() {
 			md.DB = client.Database(md.name)
 			return
 		} else {
-			log.Println("MongoDB connection has failed. Sleeping for a second...")
+			log.Printf("MongoDB connection has failed. Sleeping for a second...: %v", err)
 			time.Sleep(1 * time.Second)
 		}
 	}
@@ -49,7 +49,7 @@ func (md *DB) testDBConnection() {
 			log.Println("[INFO] Pinged mongoDB successfully")
 			return
 		} else {
-			log.Println("[INFO] MongoDB has not been prepared yet. Sleeping for a second...")
+			log.Printf("[INFO] MongoDB has not been prepared yet. Sleeping for a second...: %v", err)
 			time.Sleep(1 * time.Second)
 		}
 	}

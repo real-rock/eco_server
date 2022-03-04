@@ -21,7 +21,7 @@ func newConf() conf {
 
 	host := os.Getenv("MONGO_HOST")
 	port := os.Getenv("MONGO_PORT")
-	user := os.Getenv("DB_USER")
+	user := os.Getenv("MONGO_USER")
 	pwd := os.Getenv("DB_PASSWORD")
 	name := os.Getenv("DB_NAME")
 

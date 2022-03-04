@@ -15,7 +15,6 @@ type User struct {
 	UserActive     bool      `gorm:"column:user_active;default:true;" json:"-"`
 	AccessLevel    int       `gorm:"column:access_level;default:1" json:"-"`
 	LastLogin      time.Time `gorm:"column:last_login;default:null" json:"-"`
-	Name           string    `gorm:"column:name;not null" json:"name,omitempty"`
 	Email          string    `gorm:"column:email;not null;unique" json:"email,omitempty"`
 	Password       []byte    `gorm:"column:password;not null" json:"-"`
 	AuthResource   string    `gorm:"column:auth_resource;default:'local'" json:"-"`
@@ -27,11 +26,10 @@ type User struct {
 	Followings     Users     `gorm:"many2many:followings;" json:"-"`
 }
 
-func NewUser(email, password, name string) *User {
+func NewUser(email, password string) *User {
 	u := User{
 		Email:        email,
 		Password:     []byte(password),
-		Name:         name,
 		AuthResource: "local",
 	}
 	u.HashPassword()

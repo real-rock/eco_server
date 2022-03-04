@@ -147,14 +147,8 @@ definitions:
     type: object
   request.RegisterRequest:
     properties:
-      birth:
-        example: 2016-03-31T00:00:000.Z
-        type: string
       email:
         example: example@economicus.kr
-        type: string
-      name:
-        example: user name
         type: string
       nickname:
         example: user nickname

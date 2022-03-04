@@ -91,6 +91,10 @@ func (h *QuantHandler) GetQuant(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, quant)
 }
 
+func (h *QuantHandler) GetQuantList(ctx *gin.Context) {
+	
+}
+
 // CreateQuant godoc
 // @Summary      Create a quant model
 // @Description  실험실에서 모델 만들기를 눌렀을 때, 모델 생성

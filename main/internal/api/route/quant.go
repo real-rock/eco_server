@@ -16,6 +16,11 @@ func SetQuant(router *gin.RouterGroup, handler *handler.QuantHandler) {
 		quant.PATCH("/quant/:quant_id", handler.UpdateQuant)
 		quant.PUT("/quant-option/:quant_id", handler.UpdateQuantOption)
 
-		quant.DELETE("/quant/:id", handler.DeleteQuant)
+		quant.DELETE("/quant/:quant_id", handler.DeleteQuant)
+	}
+	lab := router.Group("/lab")
+	{
+		lab.GET("/list")
+		lab.GET("/")
 	}
 }

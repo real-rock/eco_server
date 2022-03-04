@@ -10,7 +10,6 @@ import (
 	"main/internal/core/model"
 	"main/internal/pkg/logger"
 	"main/internal/pkg/pwd"
-	"time"
 )
 
 type UserRepo struct {
@@ -69,8 +68,8 @@ func (repo *UserRepo) CheckNickname(nickname string) error {
 	}
 }
 
-func (repo *UserRepo) CreateUser(email, password, name string) (uint, error) {
-	user := model.NewUser(email, password, name)
+func (repo *UserRepo) CreateUser(email, password string) (uint, error) {
+	user := model.NewUser(email, password)
 
 	if err := repo.db.Create(user).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
@@ -85,8 +84,8 @@ func (repo *UserRepo) CreateUser(email, password, name string) (uint, error) {
 	return user.ID, nil
 }
 
-func (repo *UserRepo) CreateProfile(userID uint, nickname string, birth time.Time) error {
-	profile := model.NewProfile(userID, nickname, birth)
+func (repo *UserRepo) CreateProfile(userID uint, nickname string) error {
+	profile := model.NewProfile(userID, nickname)
 
 	if err := repo.db.Create(profile).Error; err != nil {
 		logger.Logger.Errorf("error in CreateProfile: %v\n", err)

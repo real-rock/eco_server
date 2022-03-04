@@ -903,17 +903,9 @@ const docTemplate = `{
         "request.RegisterRequest": {
             "type": "object",
             "properties": {
-                "birth": {
-                    "type": "string",
-                    "example": "2016-03-31T00:00:000.Z"
-                },
                 "email": {
                     "type": "string",
                     "example": "example@economicus.kr"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "user name"
                 },
                 "nickname": {
                     "type": "string",

@@ -10,6 +10,7 @@ import (
 )
 
 var KospiData = *NewKospi()
+var FixedKD []float32
 
 const layout = "2006-01-02T15:04:05.000Z"
 
@@ -46,6 +47,7 @@ func NewKospi() *Kospi {
 		}
 		k.Date[t] = i
 		k.IndexVal = append(k.IndexVal, float32(f))
+		FixedKD = append(FixedKD, float32(f))
 	}
 	return &k
 }

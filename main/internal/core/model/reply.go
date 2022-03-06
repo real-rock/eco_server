@@ -1,24 +1,23 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"main/internal/core/model/table"
 	"main/internal/pkg/objconv"
 )
 
 type Replies []Reply
 
 type Reply struct {
-	gorm.Model `json:"-"`
-	CommentID  uint   `json:"comment_id"`
-	UserID     uint   `json:"user_id"`
-	Content    string `gorm:"type:text;column:content" json:"content"`
+	table.Reply
 }
 
 func NewReply(userID, commentID uint, content string) *Reply {
 	return &Reply{
-		UserID:    userID,
-		CommentID: commentID,
-		Content:   content,
+		table.Reply{
+			UserID:    userID,
+			CommentID: commentID,
+			Content:   content,
+		},
 	}
 }
 

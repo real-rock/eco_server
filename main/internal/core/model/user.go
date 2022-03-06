@@ -1,36 +1,25 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"main/internal/core/model/table"
 	"main/internal/pkg/logger"
 	"main/internal/pkg/objconv"
 	"main/internal/pkg/pwd"
-	"time"
 )
 
 type Users []*User
 
 type User struct {
-	gorm.Model     `json:"-" structs:"-"`
-	UserActive     bool      `gorm:"column:user_active;default:true;" json:"-"`
-	AccessLevel    int       `gorm:"column:access_level;default:1" json:"-"`
-	LastLogin      time.Time `gorm:"column:last_login;default:null" json:"-"`
-	Email          string    `gorm:"column:email;not null;unique" json:"email,omitempty"`
-	Password       []byte    `gorm:"column:password;not null" json:"-"`
-	AuthResource   string    `gorm:"column:auth_resource;default:'local'" json:"-"`
-	Profile        Profile   `gorm:"constraint:OnDelete:CASCADE;" json:"profile,omitempty"`
-	Quants         Quants    `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
-	FavoriteQuants []*Quant  `gorm:"many2many:user_favorite_quants;" json:"-"`
-	Comments       Comments  `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
-	Replies        Replies   `gorm:"constraint:OnDelete:CASCADE;" json:"-"`
-	Followings     Users     `gorm:"many2many:followings;" json:"-"`
+	table.User
 }
 
-func NewUser(email, password string) *User {
+func NewUser(email, password, resource string) *User {
 	u := User{
-		Email:        email,
-		Password:     []byte(password),
-		AuthResource: "local",
+		table.User{
+			Email:        email,
+			Password:     []byte(password),
+			AuthResource: resource,
+		},
 	}
 	u.HashPassword()
 	return &u

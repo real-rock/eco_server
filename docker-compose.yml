@@ -9,7 +9,7 @@ services:
     restart: always
     env_file: .env
     links:
-      - "db:mysqldb"
+      - "mysql:mysql"
     depends_on:
       - quant
       - db

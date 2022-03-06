@@ -20,7 +20,7 @@ func SetQuant(router *gin.RouterGroup, handler *handler.QuantHandler) {
 	}
 	lab := router.Group("/lab")
 	{
-		lab.GET("/list")
-		lab.GET("/")
+		lab.GET("/list", handler.GetLabList)
+		lab.GET("/data/:quant_id", handler.GetLabData)
 	}
 }

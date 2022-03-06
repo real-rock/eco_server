@@ -34,7 +34,28 @@ func (s *QuantService) GetMyQuants(userID uint) (model.Quants, error) {
 	return s.repo.GetMyQuants(userID)
 }
 
-func (s *QuantService) CreateQuant(userID uint, req *request.QuantC) (*response.QuantResponse, error) {
+func (s *QuantService) GetLabList(userID uint) (model.Quants, error) {
+	return s.repo.GetLabList(userID)
+}
+
+func (s *QuantService) GetLabData(quantID uint) (*response.LabData, error) {
+	q, err := s.repo.GetQuant(quantID)
+	if err != nil {
+		return nil, err
+	}
+	chart, err := s.repo.GetChart(q.ChartID)
+	if err != nil {
+		return nil, err
+	}
+	option := model.NewQuantOption(&q.QuantOption)
+	res := response.LabData{
+		Option: *option,
+		Chart:  *chart,
+	}
+	return &res, nil
+}
+
+func (s *QuantService) CreateQuant(userID uint, req *model.QuantOption) (*response.QuantResponse, error) {
 	if err := s.repo.CheckModelName(req.Name); err != nil {
 		return nil, err
 	}
@@ -46,24 +67,29 @@ func (s *QuantService) CreateQuant(userID uint, req *request.QuantC) (*response.
 	}
 
 	req.QuantID = quantID
-	option := model.NewQuantOption(req)
 
-	if err = s.repo.CreateQuantOption(option); err != nil {
+	if err = s.repo.CreateQuantOption(req.ToTable()); err != nil {
 		return nil, err
 	}
 
-	resp, err := s.getQuantResponse(option)
+	resp, err := s.getQuantResponse(req)
 	if err != nil {
 		return nil, err
 	}
 
-	resId, err := s.repo.CreateQuantResult(resp)
+	resp.QuantID = quantID
+	resId, err := s.repo.CreateQuantResult(resp.QuantID, resp.ChartData.ProfitRateData)
 	if err != nil {
 		return nil, err
 	}
 
 	m := make(map[string]interface{})
-	m["data_id"] = resId.(primitive.ObjectID).Hex()
+	m["chart_id"] = resId.(primitive.ObjectID).Hex()
+	m["cumulative_return"] = resp.CumulativeReturn
+	m["annual_average_return"] = resp.AnnualAverageReturn
+	m["winning_percentage"] = resp.WinningPercentage
+	m["max_loss_rate"] = resp.MaxLossRate
+	m["holdings_count"] = resp.HoldingsCount
 
 	if err = s.repo.UpdateQuant(quantID, m); err != nil {
 		return nil, err
@@ -80,14 +106,10 @@ func (s *QuantService) getQuantResponse(req *model.QuantOption) (*response.Quant
 	}
 
 	resp := response.NewQuantResultFromPB(result)
-	if err = resp.AddKospiData(); err != nil {
-		return nil, err
-	}
-
 	return resp, nil
 }
 
-func (s *QuantService) UpdateQuant(userID, quantID uint, req *request.QuantE) error {
+func (s *QuantService) UpdateQuant(userID, quantID uint, req *request.EditQuantReq) error {
 	q, err := s.GetQuant(quantID)
 	if err != nil {
 		return err
@@ -102,7 +124,7 @@ func (s *QuantService) UpdateQuant(userID, quantID uint, req *request.QuantE) er
 	return s.repo.UpdateQuant(q.ID, reqBody)
 }
 
-func (s *QuantService) UpdateQuantOption(userID, quantID uint, req *request.QuantOptU) error {
+func (s *QuantService) UpdateQuantOption(userID, quantID uint, req *request.EditQuantOptionReq) error {
 	q, err := s.GetQuant(quantID)
 	if err != nil {
 		return err

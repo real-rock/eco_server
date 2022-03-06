@@ -6,6 +6,7 @@ import (
 	"main/internal/conf/aws"
 	"main/internal/core/model"
 	"main/internal/core/model/request"
+	"main/internal/core/model/table"
 	"mime/multipart"
 	"time"
 )
@@ -37,7 +38,7 @@ func (s *UserService) GetUser(userID uint, fields []string) (map[string]interfac
 	return user.ToMapWithFields(fields), nil
 }
 
-func (s *UserService) Register(req *request.RegisterRequest) error {
+func (s *UserService) Register(req *request.RegisterReq) error {
 	if err := s.repo.CheckNickname(req.Nickname); err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func (s *UserService) UnFollow(userID, followingID uint) error {
 	return s.repo.UnFollow(userID, followingID)
 }
 
-func (s *UserService) GetFavoriteQuants(userID uint) ([]*model.Quant, error) {
+func (s *UserService) GetFavoriteQuants(userID uint) ([]*table.Quant, error) {
 	return s.repo.GetFavoriteQuants(userID)
 }
 

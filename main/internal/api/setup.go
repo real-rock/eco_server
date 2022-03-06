@@ -6,8 +6,8 @@ import (
 	"main/internal/api/route"
 	"main/internal/api/service"
 	"main/internal/conf/aws"
-	"main/internal/core/model"
 	"main/internal/core/model/quant"
+	"main/internal/core/model/table"
 )
 
 func (r *Router) setAll() {
@@ -21,14 +21,14 @@ func (r *Router) setAll() {
 
 func (r *Router) migrate() {
 	ms := []interface{}{
-		&model.User{},
-		&model.Profile{},
-		&model.Quant{},
-		&model.QuantOption{},
+		&table.User{},
+		&table.Profile{},
+		&table.Quant{},
+		&table.QuantOption{},
 		&quant.MainSector{},
-		&model.Reply{},
-		&model.Comment{},
-		&model.Reply{},
+		&table.Reply{},
+		&table.Comment{},
+		&table.Reply{},
 	}
 	r.mysqlDB.Migrate(ms)
 }

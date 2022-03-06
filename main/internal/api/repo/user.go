@@ -8,6 +8,7 @@ import (
 	"main/internal/conf/aws"
 	e "main/internal/core/error"
 	"main/internal/core/model"
+	"main/internal/core/model/table"
 	"main/internal/pkg/logger"
 	"main/internal/pkg/pwd"
 )
@@ -69,7 +70,7 @@ func (repo *UserRepo) CheckNickname(nickname string) error {
 }
 
 func (repo *UserRepo) CreateUser(email, password string) (uint, error) {
-	user := model.NewUser(email, password)
+	user := model.NewUser(email, password, "local")
 
 	if err := repo.db.Create(user).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
@@ -214,7 +215,7 @@ func (repo *UserRepo) UnFollow(userID, followingID uint) error {
 	return nil
 }
 
-func (repo *UserRepo) GetFavoriteQuants(userID uint) ([]*model.Quant, error) {
+func (repo *UserRepo) GetFavoriteQuants(userID uint) ([]*table.Quant, error) {
 	var user model.User
 
 	if err := repo.db.Preload("FavoriteQuants").First(&user, userID).Error; err != nil {

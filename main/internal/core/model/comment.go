@@ -1,25 +1,23 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"main/internal/core/model/table"
 	"main/internal/pkg/objconv"
 )
 
 type Comments []Comment
 
 type Comment struct {
-	gorm.Model `json:"-" structs:"-"`
-	UserID     uint    `json:"user_id"`
-	QuantID    uint    `json:"quant_id"`
-	Content    string  `gorm:"type:text;column:content" json:"content"`
-	Replies    Replies `gorm:"constraint:OnDelete:CASCADE;" json:"replies"`
+	table.Comment
 }
 
 func NewComment(userID, quantID uint, content string) *Comment {
 	return &Comment{
-		UserID:  userID,
-		QuantID: quantID,
-		Content: content,
+		table.Comment{
+			UserID:  userID,
+			QuantID: quantID,
+			Content: content,
+		},
 	}
 }
 

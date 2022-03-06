@@ -1,20 +1,12 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"main/internal/core/model/table"
 	"main/internal/pkg/objconv"
 )
 
 type Profile struct {
-	gorm.Model   `json:"-"`
-	UserID       uint     `json:"user_id"`
-	Nickname     string   `gorm:"column:nickname;not null" json:"nickname,omitempty"`
-	ProfileImage string   `gorm:"column:profile_image;default:'photo/no_image.png'" json:"profile_image,omitempty"`
-	Email        string   `gorm:"column:email" json:"email,omitempty"`
-	Phone        string   `gorm:"column:phone" json:"phone,omitempty"`
-	UserURL      string   `gorm:"column:user_url" json:"user_url,omitempty"`
-	IntroMessage string   `gorm:"column:intro_message" json:"intro_message"`
-	Location     Location `gorm:"embedded;embeddedPrefix:location_" json:"location,omitempty"`
+	table.Profile
 }
 
 type Location struct {
@@ -24,13 +16,15 @@ type Location struct {
 
 func NewProfile(userID uint, nickname string) *Profile {
 	return &Profile{
-		UserID:   userID,
-		Nickname: nickname,
+		table.Profile{
+			UserID:   userID,
+			Nickname: nickname,
+		},
 	}
 }
 
 func (p *Profile) GetID() uint {
-	return p.ID
+	return p.UserID
 }
 
 func (p *Profile) GetOwnerID() uint {

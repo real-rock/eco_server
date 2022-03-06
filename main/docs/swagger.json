@@ -22,6 +22,128 @@
     "host": "localhost:8080",
     "basePath": "/v1",
     "paths": {
+        "/lab/data": {
+            "get": {
+                "description": "실험실에서 모델을 체크할 때, 모델의 차트 데이터와 옵션 정보를 반환",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "quant"
+                ],
+                "summary": "Return chart and option data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {access_token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "QuantID to get data",
+                        "name": "quant_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data of a quant",
+                        "schema": {
+                            "$ref": "#/definitions/response.LabData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/lab/list": {
+            "get": {
+                "description": "실험실에 들어갈 때, 유저가 실험실에서 테스트하던 모델들 반환",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "quant"
+                ],
+                "summary": "Return a list of user's quants",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {access_token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quant list",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.LabQuant"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "이메일, 비밀번호로 로그인하기",
@@ -203,7 +325,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.QuantC"
+                            "$ref": "#/definitions/model.QuantOption"
                         }
                     }
                 ],
@@ -265,7 +387,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.QuantOptU"
+                            "$ref": "#/definitions/request.EditQuantOptionReq"
                         }
                     },
                     {
@@ -465,7 +587,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.QuantC"
+                            "$ref": "#/definitions/request.EditQuantReq"
                         }
                     }
                 ],
@@ -584,7 +706,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.RegisterRequest"
+                            "$ref": "#/definitions/request.RegisterReq"
                         }
                     }
                 ],
@@ -646,7 +768,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.RegisterRequest"
+                            "$ref": "#/definitions/request.RegisterReq"
                         }
                     }
                 ],
@@ -706,9 +828,29 @@
         "model.Quant": {
             "type": "object",
             "properties": {
+                "annual_average_return": {
+                    "type": "number",
+                    "example": 16
+                },
+                "cumulative_return": {
+                    "type": "number",
+                    "example": 128.2
+                },
                 "description": {
                     "type": "string",
                     "example": "quant model description"
+                },
+                "holdings_count": {
+                    "type": "integer",
+                    "example": 22
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "max_loss_rate": {
+                    "type": "number",
+                    "example": -29.11
                 },
                 "name": {
                     "type": "string",
@@ -716,6 +858,87 @@
                 },
                 "user_id": {
                     "type": "integer"
+                },
+                "winning_percentage": {
+                    "type": "number",
+                    "example": 66.66
+                }
+            }
+        },
+        "model.QuantOption": {
+            "type": "object",
+            "properties": {
+                "de_ratio": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "dividend_payout_ratio": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "dividend_yield": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "end_date": {
+                    "type": "string",
+                    "example": "2021-03-31T00:00:000.Z"
+                },
+                "financing": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "investing": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "main_sectors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "market_cap": {
+                    "$ref": "#/definitions/quant.IntPair"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "net_profit": {
+                    "$ref": "#/definitions/quant.IntPair"
+                },
+                "net_profit_rate": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "net_revenue": {
+                    "$ref": "#/definitions/quant.IntPair"
+                },
+                "net_revenue_rate": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "operating": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "pbr": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "pcr": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "per": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "psr": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "quant_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "roa": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "roe": {
+                    "$ref": "#/definitions/quant.DoublePair"
+                },
+                "start_date": {
+                    "type": "string",
+                    "example": "2016-03-31T00:00:000.Z"
                 }
             }
         },
@@ -745,7 +968,7 @@
                 }
             }
         },
-        "request.QuantC": {
+        "request.EditQuantOptionReq": {
             "type": "object",
             "properties": {
                 "de_ratio": {
@@ -771,18 +994,13 @@
                     "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "example": [
-                        "IT",
-                        "소재"
-                    ]
+                    }
                 },
                 "market_cap": {
                     "$ref": "#/definitions/quant.IntPair"
                 },
                 "name": {
-                    "type": "string",
-                    "example": "Model name"
+                    "type": "string"
                 },
                 "net_profit": {
                     "$ref": "#/definitions/quant.IntPair"
@@ -811,6 +1029,10 @@
                 "psr": {
                     "$ref": "#/definitions/quant.DoublePair"
                 },
+                "quant_id": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "roa": {
                     "$ref": "#/definitions/quant.DoublePair"
                 },
@@ -823,81 +1045,24 @@
                 }
             }
         },
-        "request.QuantOptU": {
+        "request.EditQuantReq": {
             "type": "object",
             "properties": {
-                "de_ratio": {
-                    "$ref": "#/definitions/quant.DoublePair"
+                "active": {
+                    "type": "boolean",
+                    "example": true
                 },
-                "dividend_payout_ratio": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "dividend_yield": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "end_date": {
+                "description": {
                     "type": "string",
-                    "example": "2021-03-31T00:00:000.Z"
+                    "example": "New model description"
                 },
-                "financing": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "investing": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "main_sectors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "IT",
-                        "소재"
-                    ]
-                },
-                "market_cap": {
-                    "$ref": "#/definitions/quant.IntPair"
-                },
-                "net_profit": {
-                    "$ref": "#/definitions/quant.IntPair"
-                },
-                "net_profit_rate": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "net_revenue": {
-                    "$ref": "#/definitions/quant.IntPair"
-                },
-                "net_revenue_rate": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "operating": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "pbr": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "pcr": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "per": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "psr": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "roa": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "roe": {
-                    "$ref": "#/definitions/quant.DoublePair"
-                },
-                "start_date": {
+                "name": {
                     "type": "string",
-                    "example": "2016-03-31T00:00:000.Z"
+                    "example": "New model name"
                 }
             }
         },
-        "request.RegisterRequest": {
+        "request.RegisterReq": {
             "type": "object",
             "properties": {
                 "email": {
@@ -911,6 +1076,74 @@
                 "password": {
                     "type": "string",
                     "example": "some password"
+                }
+            }
+        },
+        "response.ChartData": {
+            "type": "object",
+            "properties": {
+                "profit_rate_data": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "example": [
+                        8.31201046811529,
+                        15.13554790878776,
+                        -1.336521221573761,
+                        -1.42408166715555,
+                        10.420784591586559,
+                        8.305691643668455,
+                        17.68356243256443,
+                        9.407034979656027,
+                        -4.15162926200139,
+                        5.542443496088845,
+                        6.654446258518339
+                    ]
+                }
+            }
+        },
+        "response.LabData": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/response.ChartData"
+                },
+                "option": {
+                    "$ref": "#/definitions/model.QuantOption"
+                }
+            }
+        },
+        "response.LabQuant": {
+            "type": "object",
+            "properties": {
+                "annual_average_return": {
+                    "type": "number",
+                    "example": 16
+                },
+                "cumulative_return": {
+                    "type": "number",
+                    "example": 128.2
+                },
+                "holdings_count": {
+                    "type": "integer",
+                    "example": 22
+                },
+                "max_loss_rate": {
+                    "type": "number",
+                    "example": -29.11
+                },
+                "name": {
+                    "type": "string",
+                    "example": "model name"
+                },
+                "quant_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "winning_percentage": {
+                    "type": "number",
+                    "example": 66.66
                 }
             }
         }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"os"
 	"strings"
 )
 
@@ -30,7 +31,7 @@ func (f *format) Format(entry *log.Entry) ([]byte, error) {
 
 func NewLogger() *log.Logger {
 	logger := log.Logger{}
-	logger.SetOutput(output)
+	logger.SetOutput(os.Stdout)
 	logger.SetLevel(level)
 	logger.SetFormatter(&format{
 		log.TextFormatter{

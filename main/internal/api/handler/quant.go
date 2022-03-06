@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"main/internal/api/service"
+	"main/internal/core/data"
 	"main/internal/core/model"
 	"main/internal/core/model/request"
 	"net/http"
@@ -24,16 +25,16 @@ func NewQuantHandler(s *service.QuantService) *QuantHandler {
 // @Tags         quant
 // @Accept       json
 // @Produce      json
-// @Param                            Authorization  header  string                true  "Bearer {access_token}"
-// @Param        page      query     int            false   "number of page"      default(10)
-// @Param        per_page  query     int            false   "number of elements"  default(10)
-// @Param        order     query     string         false   "fields for order"    default("")
-// @Param        keyword   query     string         false   "keyword for query"   default("")
-// @Success      200       {object}  model.Quants   "List of quants"
-// @Failure      400       {object}  httpError      "Bad request error"
-// @Failure      401       {object}  httpError      "Unauthorized error"
-// @Failure      404       {object}  httpError      "Not found error"
-// @Failure      500       {object}  httpError      "Internal server error"
+// @Param        Authorization  header    string        true   "Bearer {access_token}"
+// @Param        page           query     int           false  "number of page"      default(10)
+// @Param        per_page       query     int           false  "number of elements"  default(10)
+// @Param        order          query     string        false  "fields for order"    default("")
+// @Param        keyword        query     string        false  "keyword for query"   default("")
+// @Success      200            {object}  model.Quants  "List of quants"
+// @Failure      400            {object}  httpError     "Bad request error"
+// @Failure      401            {object}  httpError     "Unauthorized error"
+// @Failure      404            {object}  httpError     "Not found error"
+// @Failure      500            {object}  httpError     "Internal server error"
 // @Router       /quants [get]
 func (h *QuantHandler) GetAllQuants(ctx *gin.Context) {
 	option := model.NewQuery()
@@ -64,13 +65,13 @@ func (h *QuantHandler) GetAllQuants(ctx *gin.Context) {
 // @Tags         quant
 // @Accept       json
 // @Produce      json
-// @Param                            Authorization  header  string  true  "Bearer {access_token}"
-// @Param        quant_id  path      uint           true    "ID of a quant"
-// @Success      200       {object}  model.Quant    "A quant"
-// @Failure      400       {object}  httpError      "Bad request error"
-// @Failure      401       {object}  httpError      "Unauthorized error"
-// @Failure      404       {object}  httpError      "Not found error"
-// @Failure      500       {object}  httpError      "Internal server error"
+// @Param        Authorization  header    string       true  "Bearer {access_token}"
+// @Param        quant_id       path      uint         true  "ID of a quant"
+// @Success      200            {object}  model.Quant  "A quant"
+// @Failure      400            {object}  httpError    "Bad request error"
+// @Failure      401            {object}  httpError    "Unauthorized error"
+// @Failure      404            {object}  httpError    "Not found error"
+// @Failure      500            {object}  httpError    "Internal server error"
 // @Router       /quants/quant/{quant_id} [get]
 func (h *QuantHandler) GetQuant(ctx *gin.Context) {
 	var uri struct {
@@ -91,8 +92,70 @@ func (h *QuantHandler) GetQuant(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, quant)
 }
 
-func (h *QuantHandler) GetQuantList(ctx *gin.Context) {
-	
+// GetLabList godoc
+// @Summary      Return a list of user's quants
+// @Description  실험실에 들어갈 때, 유저가 실험실에서 테스트하던 모델들 반환
+// @Tags         quant
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header    string               true  "Bearer {access_token}"
+// @Success      200            {object}  []response.LabQuant  "Quant list"
+// @Failure      400            {object}  httpError            "Bad request error"
+// @Failure      401            {object}  httpError            "Unauthorized error"
+// @Failure      404            {object}  httpError            "Not found error"
+// @Failure      500            {object}  httpError            "Internal server error"
+// @Router       /lab/list [get]
+func (h *QuantHandler) GetLabList(ctx *gin.Context) {
+	user, err := getUserFromContext(ctx)
+	if err != nil {
+		sendErr(ctx, err)
+		return
+	}
+
+	resp, err := h.service.GetLabList(user.ID)
+	if err != nil {
+		sendErr(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"quants": resp,
+		"kospi":  data.FixedKD,
+	})
+}
+
+// GetLabData godoc
+// @Summary      Return chart and option data
+// @Description  실험실에서 모델을 체크할 때, 모델의 차트 데이터와 옵션 정보를 반환
+// @Tags         quant
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header    string            true  "Bearer {access_token}"
+// @Param        quant_id       path      uint              true  "QuantID to get data"
+// @Success      200            {object}  response.LabData  "Data of a quant"
+// @Failure      400            {object}  httpError         "Bad request error"
+// @Failure      401            {object}  httpError         "Unauthorized error"
+// @Failure      404            {object}  httpError         "Not found error"
+// @Failure      500            {object}  httpError         "Internal server error"
+// @Router       /lab/data [get]
+func (h *QuantHandler) GetLabData(ctx *gin.Context) {
+	var uri struct {
+		QuantID uint `uri:"quant_id" binding:"required"`
+	}
+
+	err := ctx.ShouldBindUri(&uri)
+	if err != nil {
+		sendInvalidPathErr(ctx, err)
+		return
+	}
+
+	resp, err := h.service.GetLabData(uri.QuantID)
+	if err != nil {
+		sendInternalErr(ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, resp)
 }
 
 // CreateQuant godoc
@@ -101,8 +164,8 @@ func (h *QuantHandler) GetQuantList(ctx *gin.Context) {
 // @Tags         quant
 // @Accept       json
 // @Produce      json
-// @Param                     Authorization   header  string               true  "Bearer {access_token}"
-// @Param        quant  body  request.QuantC  true    "Quant option data"  "desc"
+// @Param        Authorization  header  string             true  "Bearer {access_token}"
+// @Param        quant          body    model.QuantOption  true  "Quant option data"  "desc"
 // @Success      201
 // @Failure      400  {object}  httpError  "Bad request error"
 // @Failure      401  {object}  httpError  "Unauthorized error"
@@ -110,7 +173,7 @@ func (h *QuantHandler) GetQuantList(ctx *gin.Context) {
 // @Failure      500  {object}  httpError  "Internal server error"
 // @Router       /quants/quant [post]
 func (h *QuantHandler) CreateQuant(ctx *gin.Context) {
-	var req request.QuantC
+	var req model.QuantOption
 
 	user, err := getUserFromContext(ctx)
 	if err != nil {
@@ -139,8 +202,8 @@ func (h *QuantHandler) CreateQuant(ctx *gin.Context) {
 // @Tags         quant
 // @Accept       json
 // @Produce      json
-// @Param                    Authorization   header  string  true  "Bearer {access_token}"
-// @Param        body  body  request.QuantC  true    "Quant data"
+// @Param        Authorization  header  string                true  "Bearer {access_token}"
+// @Param        body           body    request.EditQuantReq  true  "Quant data"
 // @Success      204
 // @Failure      400  {object}  httpError  "Bad request error"
 // @Failure      401  {object}  httpError  "Unauthorized error"
@@ -152,7 +215,7 @@ func (h *QuantHandler) UpdateQuant(ctx *gin.Context) {
 	var uri struct {
 		QuantID uint `uri:"quant_id" binding:"required"`
 	}
-	var req request.QuantE
+	var req request.EditQuantReq
 
 	err := ctx.ShouldBindUri(&uri)
 	if err != nil {
@@ -186,9 +249,9 @@ func (h *QuantHandler) UpdateQuant(ctx *gin.Context) {
 // @Tags         quant
 // @Accept       json
 // @Produce      json
-// @Param                        Authorization      header  string  true  "Bearer {access_token}"
-// @Param        body      body  request.QuantOptU  true    "Quant option data"
-// @Param        quant_id  path  uint               true    "QuantID to update"
+// @Param        Authorization  header  string                      true  "Bearer {access_token}"
+// @Param        body           body    request.EditQuantOptionReq  true  "Quant option data"
+// @Param        quant_id       path    uint                        true  "QuantID to update"
 // @Success      204
 // @Failure      400  {object}  httpError  "Bad request error"
 // @Failure      401  {object}  httpError  "Unauthorized error"
@@ -200,7 +263,7 @@ func (h *QuantHandler) UpdateQuantOption(ctx *gin.Context) {
 	var uri struct {
 		QuantID uint `uri:"quant_id" binding:"required" example:"1"`
 	}
-	var req request.QuantOptU
+	var req request.EditQuantOptionReq
 
 	err := ctx.ShouldBindUri(&uri)
 	if err != nil {
@@ -234,8 +297,8 @@ func (h *QuantHandler) UpdateQuantOption(ctx *gin.Context) {
 // @Tags         quant
 // @Accept       json
 // @Produce      json
-// @Param                        Authorization  header  string  true  "Bearer {access_token}"
-// @Param        quant_id  path  uint           true    "Quant ID to delete"
+// @Param        Authorization  header  string  true  "Bearer {access_token}"
+// @Param        quant_id       path    uint    true  "Quant ID to delete"
 // @Success      204
 // @Failure      400  {object}  httpError  "Bad request error"
 // @Failure      401  {object}  httpError  "Unauthorized error"

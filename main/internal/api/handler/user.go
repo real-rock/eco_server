@@ -25,7 +25,7 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        user  body  request.RegisterRequest  true  "A user information"
+// @Param        user  body  request.RegisterReq  true  "A user information"
 // @Success      201
 // @Failure      400  {object}  httpError  "Bad request error"
 // @Failure      401  {object}  httpError  "Unauthorized error"
@@ -33,7 +33,7 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 // @Failure      500  {object}  httpError  "Internal server error"
 // @Router       /register [post]
 func (h *UserHandler) Register(ctx *gin.Context) {
-	var req request.RegisterRequest
+	var req request.RegisterReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		sendJsonParsingErr(ctx, err)
@@ -54,8 +54,8 @@ func (h *UserHandler) Register(ctx *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param                    Authorization            header  string  true  "Bearer {access_token}"
-// @Param        body  body  request.RegisterRequest  true    "A user information"
+// @Param        Authorization  header  string               true  "Bearer {access_token}"
+// @Param        body           body    request.RegisterReq  true  "A user information"
 // @Success      201
 // @Failure      400  {object}  httpError  "Bad request error"
 // @Failure      401  {object}  httpError  "Unauthorized error"

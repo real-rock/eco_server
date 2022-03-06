@@ -3,12 +3,14 @@ package repo
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 	e "main/internal/core/error"
 	"main/internal/core/model"
 	"main/internal/core/model/response"
+	"main/internal/core/model/table"
 	"main/internal/pkg/logger"
 	"time"
 )
@@ -33,7 +35,7 @@ func (repo *QuantRepo) GetQuantData(dataID string) (*response.QuantResponse, err
 		logger.Logger.Errorf("error in GetQuantData while getting object id from hex")
 		return nil, err
 	}
-	if err = repo.mongoDB.Collection("quant_results").FindOne(context.TODO(), hexId).Decode(resp); err != nil {
+	if err = repo.mongoDB.Collection("chart").FindOne(context.TODO(), hexId).Decode(resp); err != nil {
 		logger.Logger.Errorf("error in GetQuantData while getting data from db")
 		return nil, err
 	}
@@ -58,11 +60,46 @@ func (repo *QuantRepo) GetAllQuants(userID uint, option *model.Query) (model.Qua
 	return quants, nil
 }
 
+func (repo *QuantRepo) GetLabList(userID uint) (model.Quants, error) {
+	var quants model.Quants
+
+	if err := repo.mysqlDB.Model(&model.Quant{}).Where("user_id = ? AND active = 0", userID).Find(&quants).Error; err != nil {
+		logger.Logger.Errorf("error in GetLabList: %v\n", err)
+		return nil, err
+	}
+	return quants, nil
+}
+
+func (repo *QuantRepo) GetChart(chartID string) (*response.ChartData, error) {
+	var res response.ChartData
+
+	objID, err := primitive.ObjectIDFromHex(chartID)
+	if err != nil {
+		logger.Logger.Errorf("error in GetChart while getting object id from chart id: %v\n", err)
+		return nil, err
+	}
+	if err = repo.mongoDB.Collection("chart").FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&res); err != nil {
+		logger.Logger.Errorf("error in GetChart while getting chart data from db: %v\n", err)
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (repo *QuantRepo) GetOption(quantID uint) (*model.QuantOption, error) {
+	var res model.QuantOption
+
+	if err := repo.mysqlDB.Where("quant_id = ?", quantID).First(&res).Error; err != nil {
+		logger.Logger.Errorf("error in GetOption while getting option from db: %v\n", err)
+		return nil, err
+	}
+	return &res, nil
+}
+
 // GetMyQuants returns quants of the user
 func (repo *QuantRepo) GetMyQuants(userID uint) (model.Quants, error) {
 	var quants model.Quants
 
-	if err := repo.mysqlDB.Model(&model.Quant{}).Where("user_id = ?", userID).Find(&quants).Error; err != nil {
+	if err := repo.mysqlDB.Model(&model.Quant{}).Where("user_id = ? AND active = 1", userID).Find(&quants).Error; err != nil {
 		logger.Logger.Errorf("error in GetMyQuants: %v\n", err)
 		return nil, err
 	}
@@ -73,7 +110,7 @@ func (repo *QuantRepo) GetMyQuants(userID uint) (model.Quants, error) {
 func (repo *QuantRepo) GetQuant(quantID uint) (*model.Quant, error) {
 	var quant model.Quant
 
-	if err := repo.mysqlDB.First(&quant, quantID).Error; err != nil {
+	if err := repo.mysqlDB.Preload("QuantOption").First(&quant, quantID).Error; err != nil {
 		logger.Logger.Errorf("error in GetQuant: %v\n", err)
 		return nil, err
 	}
@@ -94,14 +131,16 @@ func (repo *QuantRepo) CheckModelName(name string) error {
 
 // CreateQuant creates a quant
 func (repo *QuantRepo) CreateQuant(quant *model.Quant) (uint, error) {
-	if err := repo.mysqlDB.Create(quant).Error; err != nil {
+	q := quant.Quant
+	if err := repo.mysqlDB.Create(&q).Error; err != nil {
 		logger.Logger.Errorf("error in CreateQuant: %v\n", err)
 		return 0, err
 	}
-	return quant.ID, nil
+	quant.ID = q.ID
+	return q.ID, nil
 }
 
-func (repo *QuantRepo) CreateQuantOption(quantOption *model.QuantOption) error {
+func (repo *QuantRepo) CreateQuantOption(quantOption *table.QuantOption) error {
 	if err := repo.mysqlDB.Create(quantOption).Error; err != nil {
 		logger.Logger.Errorf("error in CreateQuantOption: %v\n", err)
 		return err
@@ -109,8 +148,8 @@ func (repo *QuantRepo) CreateQuantOption(quantOption *model.QuantOption) error {
 	return nil
 }
 
-func (repo *QuantRepo) CreateQuantResult(quantRes *response.QuantResponse) (interface{}, error) {
-	res, err := repo.mongoDB.Collection("quant_results").InsertOne(context.TODO(), *quantRes)
+func (repo *QuantRepo) CreateQuantResult(quantID uint, chart []float32) (interface{}, error) {
+	res, err := repo.mongoDB.Collection("chart").InsertOne(context.TODO(), bson.D{{"quant_id", quantID}, {"chart", chart}})
 	if err != nil {
 		logger.Logger.Errorf("error in CreateQuantResult: %v", err)
 		return nil, err

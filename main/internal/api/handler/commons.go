@@ -3,17 +3,17 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	e "main/internal/core/error"
-	"main/internal/core/model"
+	"main/internal/core/model/table"
 	"strconv"
 	"strings"
 )
 
-func getUserFromContext(ctx *gin.Context) (*model.User, error) {
+func getUserFromContext(ctx *gin.Context) (*table.User, error) {
 	setUser, exist := ctx.Get("user")
 	if !exist {
 		return nil, e.ErrNoUserFound
 	}
-	user, ok := setUser.(model.User)
+	user, ok := setUser.(table.User)
 	if !ok {
 		return nil, e.ErrNoUserFound
 	}

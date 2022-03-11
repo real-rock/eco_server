@@ -8,7 +8,7 @@ import (
 type Users []*User
 
 type User struct {
-	gorm.Model     `json:"-" structs:"-"`
+	gorm.Model     `json:"-" swaggerignore:"true"`
 	Email          string    `gorm:"column:email;not null;unique" json:"email,omitempty"`
 	Password       []byte    `gorm:"column:password;not null" json:"-"`
 	UserActive     bool      `gorm:"column:user_active;default:true;" json:"-"`

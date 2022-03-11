@@ -22,7 +22,7 @@
     "host": "localhost:8080",
     "basePath": "/v1",
     "paths": {
-        "/lab/data": {
+        "/lab/data/{quant_id}": {
             "get": {
                 "description": "실험실에서 모델을 체크할 때, 모델의 차트 데이터와 옵션 정보를 반환",
                 "consumes": [
@@ -582,6 +582,13 @@
                         "required": true
                     },
                     {
+                        "type": "integer",
+                        "description": "ID of a quant",
+                        "name": "quant_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Quant data",
                         "name": "body",
                         "in": "body",
@@ -775,6 +782,69 @@
                 "responses": {
                     "201": {
                         "description": ""
+                    },
+                    "400": {
+                        "description": "Bad request error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.httpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/profile/{user_id}": {
+            "get": {
+                "description": "프로필 화면에서 유저의 정보 및 보유한 퀀트 모델을 반환",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Return user's profile and quants",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer {access_token}",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User id to get profile",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile response",
+                        "schema": {
+                            "$ref": "#/definitions/response.ProfileResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad request error",
@@ -1144,6 +1214,99 @@
                 "winning_percentage": {
                     "type": "number",
                     "example": 66.66
+                }
+            }
+        },
+        "response.ProfileQuantResponse": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "example": [
+                        8.31201046811529,
+                        15.13554790878776,
+                        -1.336521221573761,
+                        -1.42408166715555,
+                        10.420784591586559,
+                        8.305691643668455,
+                        17.68356243256443,
+                        9.407034979656027,
+                        -4.15162926200139,
+                        5.542443496088845,
+                        6.654446258518339
+                    ]
+                },
+                "quant_id": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "response.ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "quant": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ProfileQuantResponse"
+                    }
+                },
+                "user": {
+                    "$ref": "#/definitions/table.User"
+                }
+            }
+        },
+        "table.Location": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                }
+            }
+        },
+        "table.Profile": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "intro_message": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/table.Location"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "profile_image": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "table.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "profile": {
+                    "$ref": "#/definitions/table.Profile"
                 }
             }
         }

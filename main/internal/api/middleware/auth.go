@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"main/internal/conf/db/mysql"
-	"main/internal/core/model"
+	"main/internal/core/model/table"
 	"main/internal/pkg/jwt"
 	"net/http"
 	"strings"
@@ -46,9 +46,9 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 	}
 }
 
-func getUserByID(db *gorm.DB, userID uint) (*model.User, error) {
-	var user model.User
-	err := db.First(&user, userID).Error
+func getUserByID(db *gorm.DB, userID uint) (*table.User, error) {
+	var user table.User
+	err := db.Preload("Profile").First(&user, userID).Error
 	if err != nil {
 		return nil, err
 	}

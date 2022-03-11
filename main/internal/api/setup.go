@@ -10,15 +10,6 @@ import (
 	"main/internal/core/model/table"
 )
 
-func (r *Router) setAll() {
-	r.migrate()
-	r.setupAuth()
-	r.setupUser()
-	r.setupQuant()
-	r.setupComment()
-	r.setupReply()
-}
-
 func (r *Router) migrate() {
 	ms := []interface{}{
 		&table.User{},
@@ -33,38 +24,33 @@ func (r *Router) migrate() {
 	r.mysqlDB.Migrate(ms)
 }
 
-func (r *Router) setupAuth() {
-	rp := repo.NewAuthRepo(r.mysqlDB.DB)
-	sv := service.NewAuthService(rp)
-	hdr := handler.NewAuthHandler(sv)
-	route.SetAuth(r.getGroup(), hdr)
-}
+func (r *Router) setup() {
+	r.migrate()
 
-func (r *Router) setupUser() {
 	a := aws.New()
-	rp := repo.NewUser(r.mysqlDB.DB, a)
-	sv := service.NewUserService(rp, a)
-	hdr := handler.NewUserHandler(sv)
-	route.SetUser(r.getGroup(), hdr, authMid)
-}
 
-func (r *Router) setupQuant() {
-	rp := repo.NewQuantRepo(r.mysqlDB.DB, r.mongoDB.DB)
-	sv := service.NewQuantService(rp)
-	hdr := handler.NewQuantHandler(sv)
-	route.SetQuant(r.getGroupWithAuth(), hdr)
-}
+	authRepo := repo.NewAuthRepo(r.mysqlDB.DB)
+	authService := service.NewAuthService(authRepo)
+	authHandler := handler.NewAuthHandler(authService)
+	route.SetAuth(r.getGroup(), authHandler)
 
-func (r *Router) setupComment() {
-	rp := repo.NewCommentRepo(r.mysqlDB.DB)
-	sv := service.NewCommentService(rp)
-	hdr := handler.NewCommentHandler(sv)
-	route.SetComment(r.getGroupWithAuth(), hdr)
-}
+	quantRepo := repo.NewQuantRepo(r.mysqlDB.DB, r.mongoDB.DB)
+	quantService := service.NewQuantService(quantRepo)
+	quantHandler := handler.NewQuantHandler(quantService)
+	route.SetQuant(r.getGroupWithAuth(), quantHandler)
 
-func (r *Router) setupReply() {
-	rp := repo.NewReplyRepository(r.mysqlDB.DB)
-	sv := service.NewReplyService(rp)
-	hdr := handler.NewReplyHandler(sv)
-	route.SetReply(r.getGroupWithAuth(), hdr)
+	userRepo := repo.NewUser(r.mysqlDB.DB, a)
+	userService := service.NewUserService(userRepo, a)
+	userHandler := handler.NewUserHandler(userService, quantService)
+	route.SetUser(r.getGroup(), userHandler, authMid)
+
+	commentRepo := repo.NewCommentRepo(r.mysqlDB.DB)
+	commentService := service.NewCommentService(commentRepo)
+	commentHandler := handler.NewCommentHandler(commentService)
+	route.SetComment(r.getGroupWithAuth(), commentHandler)
+
+	replyRepo := repo.NewReplyRepository(r.mysqlDB.DB)
+	replyService := service.NewReplyService(replyRepo)
+	replyHandler := handler.NewReplyHandler(replyService)
+	route.SetReply(r.getGroupWithAuth(), replyHandler)
 }

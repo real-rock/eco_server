@@ -31,7 +31,7 @@ func New(app *conf.App, mysqlDB *mysql.DB, mongoDB *mongo.DB) *Router {
 		mysqlDB: mysqlDB,
 		mongoDB: mongoDB,
 	}
-	r.setAll()
+	r.setup()
 	return &r
 }
 

@@ -6,16 +6,19 @@ import (
 	e "main/internal/core/error"
 	"main/internal/core/model"
 	"main/internal/core/model/request"
+	"main/internal/core/model/response"
 	"net/http"
 )
 
 type UserHandler struct {
-	service *service.UserService
+	userService  *service.UserService
+	quantService *service.QuantService
 }
 
-func NewUserHandler(s *service.UserService) *UserHandler {
+func NewUserHandler(s *service.UserService, q *service.QuantService) *UserHandler {
 	return &UserHandler{
-		service: s,
+		userService:  s,
+		quantService: q,
 	}
 }
 
@@ -27,10 +30,10 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 // @Produce      json
 // @Param        user  body  request.RegisterReq  true  "A user information"
 // @Success      201
-// @Failure      400  {object}  httpError  "Bad request error"
-// @Failure      401  {object}  httpError  "Unauthorized error"
-// @Failure      404  {object}  httpError  "Not found error"
-// @Failure      500  {object}  httpError  "Internal server error"
+// @Failure      400            {object}  httpError                 "Bad request error"
+// @Failure      401            {object}  httpError                 "Unauthorized error"
+// @Failure      404            {object}  httpError                 "Not found error"
+// @Failure      500            {object}  httpError                 "Internal server error"
 // @Router       /register [post]
 func (h *UserHandler) Register(ctx *gin.Context) {
 	var req request.RegisterReq
@@ -40,7 +43,7 @@ func (h *UserHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.Register(&req); err != nil {
+	if err := h.userService.Register(&req); err != nil {
 		sendErr(ctx, err)
 		return
 	}
@@ -54,7 +57,7 @@ func (h *UserHandler) Register(ctx *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        Authorization  header  string               true  "Bearer {access_token}"
+// @Param        Authorization  header    string                    true  "Bearer {access_token}"
 // @Param        body           body    request.RegisterReq  true  "A user information"
 // @Success      201
 // @Failure      400  {object}  httpError  "Bad request error"
@@ -70,7 +73,7 @@ func (h *UserHandler) GetAllUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := h.service.GetUsers(option)
+	users, err := h.userService.GetUsers(option)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -94,13 +97,62 @@ func (h *UserHandler) GetUser(ctx *gin.Context) {
 
 	fields := getFieldsFromContext(ctx)
 
-	resp, err := h.service.GetUser(userID, fields)
+	resp, err := h.userService.GetUser(userID, fields)
 	if err != nil {
 		sendErr(ctx, err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, resp)
+}
+
+// GetUserProfile godoc
+// @Summary      Return user's profile and quants
+// @Description  프로필 화면에서 유저의 정보 및 보유한 퀀트 모델을 반환
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header  string               true  "Bearer {access_token}"
+// @Param        user_id        path      uint                      true  "User id to get profile"
+// @Success      200            {object}  response.ProfileResponse  "Profile response"
+// @Failure      400  {object}  httpError  "Bad request error"
+// @Failure      401  {object}  httpError  "Unauthorized error"
+// @Failure      404  {object}  httpError  "Not found error"
+// @Failure      500  {object}  httpError  "Internal server error"
+// @Router       /users/profile/{user_id}  [get]
+func (h *UserHandler) GetUserProfile(ctx *gin.Context) {
+	var uri struct {
+		UserID uint `uri:"user_id" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindUri(&uri); err != nil {
+		sendInvalidPathErr(ctx, err)
+		return
+	}
+
+	user, err := getUserFromContext(ctx)
+	if err != nil {
+		sendErr(ctx, err)
+		return
+	}
+
+	if uri.UserID != user.ID {
+		sendErr(ctx, e.ErrPermissionDenied)
+		return
+	}
+
+	quant, err := h.quantService.GetUsersQuant(user.ID)
+	if err != nil {
+		sendErr(ctx, err)
+		return
+	}
+
+	res := response.ProfileResponse{
+		User:  *user,
+		Quant: quant,
+	}
+
+	ctx.JSON(http.StatusOK, res)
 }
 
 // DeleteUser deletes a user
@@ -111,7 +163,7 @@ func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.DeleteUser(user.ID)
+	err = h.userService.DeleteUser(user.ID)
 	if err != nil {
 
 		return
@@ -136,7 +188,7 @@ func (h *UserHandler) EditUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.UpdateProfile(user.ID, &req)
+	err = h.userService.UpdateProfile(user.ID, &req)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -160,7 +212,7 @@ func (h *UserHandler) UploadUserProfileImage(ctx *gin.Context) {
 	}
 	defer file.Close()
 
-	err = h.service.UploadProfileImage(user.ID, file, header)
+	err = h.userService.UploadProfileImage(user.ID, file, header)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -177,7 +229,7 @@ func (h *UserHandler) GetFollowings(ctx *gin.Context) {
 		return
 	}
 
-	followings, err := h.service.GetFollowings(user.ID)
+	followings, err := h.userService.GetFollowings(user.ID)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -194,7 +246,7 @@ func (h *UserHandler) GetFollowers(ctx *gin.Context) {
 		return
 	}
 
-	followings, err := h.service.GetFollowers(user.ID)
+	followings, err := h.userService.GetFollowers(user.ID)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -221,7 +273,7 @@ func (h *UserHandler) FollowUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.Follow(user.ID, data.FollowerID)
+	err = h.userService.Follow(user.ID, data.FollowerID)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -248,7 +300,7 @@ func (h *UserHandler) UnfollowUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.UnFollow(user.ID, data.FollowingID)
+	err = h.userService.UnFollow(user.ID, data.FollowingID)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -265,7 +317,7 @@ func (h *UserHandler) GetFavoriteQuants(ctx *gin.Context) {
 		return
 	}
 
-	quants, err := h.service.GetFavoriteQuants(user.ID)
+	quants, err := h.userService.GetFavoriteQuants(user.ID)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -295,7 +347,7 @@ func (h *UserHandler) AddToFavoriteQuants(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.AddToFavoriteQuants(user.ID, data.QuantID)
+	err = h.userService.AddToFavoriteQuants(user.ID, data.QuantID)
 	if err != nil {
 		sendErr(ctx, err)
 		return
@@ -322,7 +374,7 @@ func (h *UserHandler) DeleteFromFavoriteQuants(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.DeleteFromFavoriteQuants(user.ID, data.QuantID)
+	err = h.userService.DeleteFromFavoriteQuants(user.ID, data.QuantID)
 	if err != nil {
 		sendErr(ctx, err)
 		return

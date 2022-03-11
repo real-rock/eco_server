@@ -85,6 +85,30 @@ func (repo *QuantRepo) GetChart(chartID string) (*response.ChartData, error) {
 	return &res, nil
 }
 
+func (repo *QuantRepo) GetChartByIds(chartIDs []string) ([]response.ProfileQuantResponse, error) {
+	var res []response.ProfileQuantResponse
+	var ids []primitive.ObjectID
+
+	for _, v := range chartIDs {
+		id, err := primitive.ObjectIDFromHex(v)
+		if err != nil {
+			logger.Logger.Errorf("error in GetChartByIds while getting object id")
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	c, err := repo.mongoDB.Collection("chart").Find(context.TODO(), bson.M{"_id": bson.M{"$in": ids}})
+	if err != nil {
+		logger.Logger.Errorf("error in GetChartByIds while getting object from mongo db")
+		return nil, err
+	}
+	if err = c.All(context.TODO(), &res); err != nil {
+		logger.Logger.Errorf("error in GetChartByIds while getting object")
+		return nil, err
+	}
+	return res, nil
+}
+
 func (repo *QuantRepo) GetOption(quantID uint) (*model.QuantOption, error) {
 	var res model.QuantOption
 
@@ -95,15 +119,24 @@ func (repo *QuantRepo) GetOption(quantID uint) (*model.QuantOption, error) {
 	return &res, nil
 }
 
+func (repo *QuantRepo) GetUserQuantIds(userID uint) ([]string, error) {
+	var ids []string
+
+	if err := repo.mysqlDB.Raw("select chart_id from quants where user_id = ?", userID).Find(&ids).Error; err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
 // GetMyQuants returns quants of the user
-func (repo *QuantRepo) GetMyQuants(userID uint) (model.Quants, error) {
+func (repo *QuantRepo) GetMyQuants(userID uint) (*model.Quants, error) {
 	var quants model.Quants
 
 	if err := repo.mysqlDB.Model(&model.Quant{}).Where("user_id = ? AND active = 1", userID).Find(&quants).Error; err != nil {
 		logger.Logger.Errorf("error in GetMyQuants: %v\n", err)
 		return nil, err
 	}
-	return quants, nil
+	return &quants, nil
 }
 
 // GetQuant returns a quant of quant id

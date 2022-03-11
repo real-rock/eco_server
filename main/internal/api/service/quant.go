@@ -30,7 +30,15 @@ func (s *QuantService) GetQuant(quantID uint) (*model.Quant, error) {
 	return s.repo.GetQuant(quantID)
 }
 
-func (s *QuantService) GetMyQuants(userID uint) (model.Quants, error) {
+func (s *QuantService) GetUsersQuant(userID uint) ([]response.ProfileQuantResponse, error) {
+	ids, err := s.repo.GetUserQuantIds(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.GetChartByIds(ids)
+}
+
+func (s *QuantService) GetMyQuants(userID uint) (*model.Quants, error) {
 	return s.repo.GetMyQuants(userID)
 }
 

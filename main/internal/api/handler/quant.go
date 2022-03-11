@@ -137,7 +137,7 @@ func (h *QuantHandler) GetLabList(ctx *gin.Context) {
 // @Failure      401            {object}  httpError         "Unauthorized error"
 // @Failure      404            {object}  httpError         "Not found error"
 // @Failure      500            {object}  httpError         "Internal server error"
-// @Router       /lab/data [get]
+// @Router       /lab/data/{quant_id} [get]
 func (h *QuantHandler) GetLabData(ctx *gin.Context) {
 	var uri struct {
 		QuantID uint `uri:"quant_id" binding:"required"`
@@ -203,6 +203,7 @@ func (h *QuantHandler) CreateQuant(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        Authorization  header  string                true  "Bearer {access_token}"
+// @Param        quant_id       path      uint         true  "ID of a quant"
 // @Param        body           body    request.EditQuantReq  true  "Quant data"
 // @Success      204
 // @Failure      400  {object}  httpError  "Bad request error"
